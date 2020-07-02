@@ -1,9 +1,29 @@
-import 'dart:async';
+import
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:notekeeperapp/models/note.dart';
 import 'package:notekeeperapp/utils/database_helper.dart';
 import 'package:intl/intl.dart';
+
+class TitleFieldValidator {
+  static String validate(String value) {
+    if(value== null || value.isEmpty) {
+      return 'Title cannot be empty';
+    }
+    
+    if(value.length>=21) {
+      return 'Limit characters to 20';
+    }
+    return null;
+  }
+}class DescriptionFieldValidator {
+  static String validate(String value) {
+    if(value.length>=256) {
+      return 'Limit characters to 255';
+    }
+    return null;
+  }
+}
 
 class NoteDetail extends StatefulWidget {
 
@@ -29,6 +49,8 @@ class _NoteDetailState extends State<NoteDetail> {
 
   _NoteDetailState(this.note, this.appBarTitle);
 
+  final _formKey= GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
     TextStyle textStyle = Theme.of(context).textTheme.title;
@@ -40,7 +62,8 @@ class _NoteDetailState extends State<NoteDetail> {
       appBar: AppBar(
         title: Text(appBarTitle),
       ),
-      body: Padding(
+      body: Form(
+      child: Padding(
         padding: EdgeInsets.only(top: 15.0, left: 10.0, right: 10.0),
         child: ListView(
           children: <Widget>[
@@ -66,9 +89,11 @@ class _NoteDetailState extends State<NoteDetail> {
             //Second Element
             Padding(
               padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
-              child: TextField(
+              child: TextFormField(
                 controller: titleController,
                 style: textStyle,
+                key: Key('title'),
+                validator: TitleFieldValidator.validate,
                 onChanged: (value) {
                   debugPrint("Something changed in title TextField");
                   updateTitle();
@@ -84,9 +109,11 @@ class _NoteDetailState extends State<NoteDetail> {
             //Third Element
             Padding(
               padding: EdgeInsets.only(top: 15.0, bottom: 15.0),
-              child: TextField(
+              child: TextFormField(
                 controller: descriptionController,
                 style: textStyle,
+                key: Key('description'),
+                validator: DescriptionFieldValidator.validate,
                 onChanged: (value) {
                   debugPrint("Something changed in description TextField");
                   updateDescription();
@@ -113,10 +140,12 @@ class _NoteDetailState extends State<NoteDetail> {
                         ),
 
                         onPressed: () {
-                          setState(() {
-                            debugPrint("Save button clicked");
-                            _save();
-                          });
+                          if (_formKey.currentState.validate()) {
+                            setState(() {
+                              debugPrint("Save button clicked");
+                              _save();
+                            });
+                          }
                         }
                     ),
                   ),
@@ -150,7 +179,7 @@ class _NoteDetailState extends State<NoteDetail> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   void moveToLastScreen() {
